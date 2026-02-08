@@ -1,6 +1,8 @@
 package io.github.libnexus.sklite.debug;
 
 import io.github.libnexus.sklite.core.SkPatternNode;
+import io.github.libnexus.sklite.core.pattern.SkReferencePattern;
+import io.github.libnexus.sklite.core.pattern.SkSimplePattern;
 
 import java.util.ArrayList;
 import java.util.List;
