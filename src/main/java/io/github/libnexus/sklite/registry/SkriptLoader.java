@@ -11,7 +11,18 @@ import java.util.function.Function;
 
 public class SkriptLoader {
 
-    public SkriptLoader() {
+    private final SkParser parser;
+
+    public SkriptLoader(SkParser parser) {
+        this.parser = parser;
+    }
+
+    public void registerCommand(String syntax, Class<? extends ScriptElement> clazz) {
+        parser.command("TEMP_ROOT");
+        SkSyntaxParser.apply(parser, syntax);
+
+        Function<Map<String, ScriptElement>, ScriptElement> factory = createFactory(clazz);
+        parser.setElementFactory(factory);
     }
 
     private Function<Map<String, ScriptElement>, ScriptElement> createFactory(Class<? extends ScriptElement> clazz) {
