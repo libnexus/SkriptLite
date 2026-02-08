@@ -2,6 +2,9 @@ package io.github.libnexus.sklite.core;
 
 import io.github.libnexus.sklite.api.ScriptElement;
 import io.github.libnexus.sklite.core.pattern.SkPattern;
+import io.github.libnexus.sklite.core.pattern.SkReferencePattern;
+import io.github.libnexus.sklite.core.pattern.SkRegexPattern;
+import io.github.libnexus.sklite.core.pattern.SkSimplePattern;
 
 import java.util.*;
 import java.util.function.Function;
@@ -109,15 +112,15 @@ public class SkParser {
         String cleanInput = input.strip();
         GraphResult result = matchGraph(ROOT, cleanInput);
 
-        
+
         if (result != null
                 && result.value != null
-                && result.consumed == cleanInput.length()) { 
+                && result.consumed == cleanInput.length()) {
 
             return result.value;
         }
 
-        
+
         if (result != null && result.consumed < cleanInput.length()) {
             System.out.println("Error: syntax '" + input + "' matched partially but failed at: '" + input.substring(result.consumed) + "'");
         }
@@ -145,13 +148,13 @@ public class SkParser {
                 rawValue = ((SkRegexPattern) pattern).getLastValue();
             } else if (pattern instanceof SkReferencePattern) {
                 localConsumed = ((SkReferencePattern) pattern).getLastConsumed();
-                
+
                 rawValue = ((SkReferencePattern) pattern).getLastValue();
             }
 
             if (localConsumed > currentInput.length()) return null;
 
-            
+
             String rawNext = currentInput.substring(localConsumed);
             String nextInput = rawNext.stripLeading();
             int skippedWhitespace = rawNext.length() - nextInput.length();
@@ -159,10 +162,10 @@ public class SkParser {
             currentInput = nextInput;
             totalConsumed += localConsumed + skippedWhitespace;
 
-            
+
             if (node.getCaptureKey() != null) {
-                
-                
+
+
                 ScriptElement element = (rawValue instanceof ScriptElement)
                         ? (ScriptElement) rawValue
                         : new ScriptElement.Literal(rawValue);
@@ -173,16 +176,16 @@ public class SkParser {
             captures.put("@%s".formatted(captures.size()), new ScriptElement.Literal(rawValue));
         }
 
-        
+
         for (SkPatternNode child : node.getChildren()) {
             Map<String, ScriptElement> nextCaptures = new HashMap<>(captures);
             GraphResult res = match(child, currentInput, nextCaptures, totalConsumed);
             if (res != null) return res;
         }
 
-        
+
         if (node.getElementFactory() != null) {
-            
+
             ScriptElement builtElement = node.getElementFactory().apply(captures);
             return new GraphResult(builtElement, totalConsumed, new HashMap<>(captures));
         }
@@ -232,7 +235,7 @@ public class SkParser {
         String currentInput = input;
         int localConsumed = 0;
 
-        
+
         if (node.getPattern() != null) {
             SkPattern pattern = node.getPattern();
             SkPattern match = pattern.match(currentInput);
@@ -274,23 +277,23 @@ public class SkParser {
 
         GraphResult bestResult = null;
 
-        
+
         for (SkPatternNode child : node.getChildren()) {
             Map<String, ScriptElement> nextCaptures = new HashMap<>(captures);
             GraphResult res = recursiveMatch(child, currentInput, nextCaptures, totalConsumed);
 
             if (res != null) {
-                
+
                 if (bestResult == null || res.consumed > bestResult.consumed) {
                     bestResult = res;
                 }
             }
         }
 
-        
+
         if (bestResult != null) return bestResult;
 
-        
+
         if (node.getElementFactory() != null) {
             ScriptElement builtElement = node.getElementFactory().apply(captures);
             return new GraphResult(builtElement, totalConsumed, new HashMap<>(captures));
@@ -298,10 +301,6 @@ public class SkParser {
 
         return null;
     }
-
-    public record ParseResult(Map<String, Object> captures, SkExecutor executor) {
-    }
-
 
     public record GraphResult(ScriptElement value, int consumed, Map<String, Object> captures) {
     }
